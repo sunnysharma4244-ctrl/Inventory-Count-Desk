@@ -9,6 +9,12 @@
   "build": {
     "appId": "com.inventory.countdesk",
     "productName": "Inventory Count Desk",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "index.html",
+      "main.js"
+    ],
     "win": {
       "target": "nsis"
     },
