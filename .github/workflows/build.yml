@@ -45,8 +45,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK Manager
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 11.0
+          packages: 'build-tools;34.0.0 platform-tools platforms;android-34'
 
       - name: Build Android App via Capacitor
         run: |
@@ -58,8 +61,6 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
