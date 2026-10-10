@@ -43,17 +43,16 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Capacitor CLI
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Generate Capacitor Project
+      - name: Build Android App via Capacitor
         run: |
+          npm init -y
+          npm install @capacitor/core@5.7.0 @capacitor/cli@5.7.0 @capacitor/android@5.7.0
           echo '{"appId":"com.inventory.desk","appName":"Inventory Count Desk","webDir":".","bundledWebRuntime":false}' > capacitor.config.json
           npx cap add android
-
-      - name: Build Android APK via Gradle
-        run: |
+          npx cap copy android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
