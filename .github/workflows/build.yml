@@ -43,16 +43,17 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build Android App via Capacitor
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Create Capacitor Config & Build Android APK
         run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Inventory Count Desk" "com.inventory.desk" --web-dir .
+          echo '{"appId":"com.inventory.desk","appName":"Inventory Count Desk","webDir":".","bundledWebRuntime":false}' > capacitor.config.json
           npx cap add android
           npx cap sync android
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
