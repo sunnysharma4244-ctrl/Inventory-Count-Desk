@@ -37,22 +37,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Setup Java
+      - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build Android APK via Capacitor
+      - name: Build Android App via Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "Inventory Count Desk" "com.inventory.desk" --web-dir .
           npx cap add android
-          npx cap sync
+          npx cap sync android
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
