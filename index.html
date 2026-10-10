@@ -7,14 +7,35 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- SheetJS for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f0f9ff 0%, #e6f4ea 100%); color: #0f172a; user-select: none; overflow: hidden; height: 100vh; }
 
-        /* Sky-Blue & Emerald Green Gradient Header */
+        /* Activation Modal */
+        #activationModal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+        }
+        .activation-card {
+            background: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 380px; text-align: center;
+        }
+        .activation-card h2 { color: #0284c7; margin-bottom: 8px; font-size: 1.4rem; font-weight:800; }
+        .activation-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.4; }
+        .activation-card input {
+            width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px;
+            font-size: 18px; text-align: center; font-weight: 800; letter-spacing: 4px; outline: none; margin-bottom: 16px;
+        }
+        .activation-card input:focus { border-color: #0284c7; }
+        .activation-card button {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #fff; font-size: 14px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;
+        }
+
+        /* Header UI */
         header { 
             background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); 
             padding: 8px 16px; display: flex; justify-content: space-between; 
@@ -23,110 +44,72 @@
         }
 
         .brand-container { display: flex; align-items: center; gap: 8px; }
-        .app-brand-title { font-size: 1rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+        .app-brand-title { font-size: 1.1rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
 
-        /* Client Company Details (Center Section) */
         .client-section {
-            display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.15); 
-            padding: 4px 10px; border-radius: 8px; border: 1px dashed rgba(255, 255, 255, 0.4);
+            display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.18); 
+            padding: 4px 12px; border-radius: 8px; border: 1px dashed rgba(255, 255, 255, 0.5);
         }
-        .logo-box { width: 32px; height: 32px; background: rgba(255, 255, 255, 0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.5); transition: all 0.2s; }
-        .logo-box:hover { background: rgba(255, 255, 255, 0.35); }
+        .logo-box { width: 34px; height: 34px; background: rgba(255, 255, 255, 0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.5); transition: all 0.2s; }
+        .logo-box:hover { background: rgba(255, 255, 255, 0.4); }
         .logo-box img { width: 100%; height: 100%; object-fit: cover; }
         .logo-box svg { width: 18px; height: 18px; fill: none; stroke: #ffffff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
         
-        .company-title-input { font-size: 0.85rem; font-weight: 700; color: #ffffff; border: none; background: transparent; outline: none; width: 180px; }
+        .company-title-input { font-size: 0.95rem; font-weight: 700; color: #ffffff; border: none; background: transparent; outline: none; width: 200px; }
         .company-title-input::placeholder { color: rgba(255,255,255,0.7); }
-        .company-title-input:hover, .company-title-input:focus { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 
-        .main-actions-top { display: flex; align-items: center; gap: 6px; }
-
+        .main-actions-top { display: flex; align-items: center; gap: 8px; }
         .main-layout { display: flex; height: calc(100vh - 60px); width: 100vw; position: relative; }
-
         #canvas-container { flex: 1; height: 100%; position: relative; background: #cbd5e1; cursor: crosshair; overflow: hidden; }
         canvas { position: absolute; top: 0; left: 0; }
 
-        /* Scrollable Right Sidebar */
         .sidebar { 
-            width: 340px; background: rgba(255, 255, 255, 0.93); backdrop-filter: blur(8px); border-left: 1px solid #bae6fd; padding: 14px; 
-            display: flex; flex-direction: column; gap: 12px; z-index: 10; height: 100%; 
-            overflow-y: auto; overflow-x: hidden;
+            width: 350px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-left: 1px solid #bae6fd; padding: 14px; 
+            display: flex; flex-direction: column; gap: 12px; z-index: 10; height: 100%; overflow-y: auto; overflow-x: hidden;
         }
 
-        .sidebar::-webkit-scrollbar { width: 6px; }
-        .sidebar::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 3px; }
-
-        .sub-toolbar { 
-            display: flex; gap: 8px; align-items: center; padding: 6px 16px; background: #f0f9ff; 
-            border-bottom: 1px solid #bae6fd; flex-wrap: wrap; position: relative;
-        }
-
-        button, label { 
-            padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 6px; 
-            border: 1px solid #cbd5e1; color: #334155; background: #ffffff; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;
-        }
+        .sub-toolbar { display: flex; gap: 8px; align-items: center; padding: 8px 16px; background: #f0f9ff; border-bottom: 1px solid #bae6fd; flex-wrap: wrap; }
+        button, label { padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; background: #ffffff; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
         label { background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; }
-        button:hover, label:hover { background: #e0f2fe; color: #0369a1; border-color: #38bdf8; }
-
         button.btn-primary { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; }
         button.btn-success { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; }
         button.btn-dark { background: #0f172a; color: #fff; border: none; }
 
-        .slider-group { display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 600; }
-        .slider-group input[type="range"] { width: 60px; accent-color: #0284c7; cursor: pointer; }
-
-        /* Floating Lighting Panel */
-        .filters-panel { display: none; position: absolute; top: 45px; left: 210px; background: #ffffff; border: 1px solid #38bdf8; padding: 10px 14px; border-radius: 8px; box-shadow: 0 10px 25px rgba(2,132,199,0.15); z-index: 40; gap: 10px; flex-direction: column; }
-        .filters-panel.active { display: flex; }
-
-        .sidebar-section { background: rgba(240, 249, 255, 0.7); border: 1px solid #bae6fd; border-radius: 8px; padding: 10px; }
-
-        .size-input-group { display: flex; flex-direction: column; gap: 6px; }
-        .size-input-row { display: flex; gap: 6px; }
-        .size-input-group input[type="text"], .sidebar-section input[type="text"] { flex: 1; padding: 6px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #fff; }
-
-        .color-palette { display: flex; gap: 5px; align-items: center; margin-top: 2px; }
-        .color-chip { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-chip.selected { border-color: #0f172a; transform: scale(1.1); }
-
-        .size-card { background: #ffffff; padding: 6px 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid #e0f2fe; margin-bottom: 4px; }
+        .sidebar-section { background: rgba(240, 249, 255, 0.8); border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; }
+        .size-card { background: #ffffff; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid #e0f2fe; margin-bottom: 6px; }
         .size-card.active { border-color: #0284c7; background: #e0f2fe; }
-        .size-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+        .size-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
 
-        .mode-btn.active-delete { background: #ef4444; color: #ffffff; border-color: #dc2626; }
-        .mode-btn.active-filter { background: #0284c7; color: #ffffff; border-color: #0369a1; }
-
-        .section-header { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #0284c7; font-weight: 800; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-
-        .batch-card { background: #ffffff; border: 1px solid #e0f2fe; border-radius: 6px; overflow: hidden; font-size: 11px; margin-bottom: 6px; }
+        .batch-card { background: #ffffff; border: 1px solid #e0f2fe; border-radius: 6px; overflow: hidden; font-size: 12px; margin-bottom: 6px; }
         .batch-header { padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
         .batch-body { padding: 6px 8px; background: #ffffff; display: none; border-top: 1px solid #e2e8f0; }
         .batch-body.open { display: block; }
-        .batch-cat-row { display: flex; justify-content: space-between; padding: 4px; font-size: 11px; color: #475569; border-radius: 4px; cursor: pointer; }
-        .batch-cat-row:hover { background: #e0f2fe; color: #0284c7; }
-
-        .btn-mini { padding: 2px 6px; font-size: 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; }
-        .btn-mini:hover { background: #0284c7; color: #fff; border-color: #0284c7; }
-
-        .storage-bar-box { background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden; width: 100%; margin-top: 4px; }
-        .storage-bar-fill { height: 100%; background: #16a34a; width: 0%; transition: width 0.3s; }
-
+        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 100; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: #fff; border-radius: 10px; width: 600px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
         .modal-header { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
         .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
 
-        table.summary-tbl { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; }
-        table.summary-tbl th, table.summary-tbl td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+        table.summary-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
+        table.summary-tbl th, table.summary-tbl td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
         table.summary-tbl th { background: #f1f5f9; font-weight: 700; }
     </style>
 </head>
 <body>
 
-    <!-- Sky-Blue & Emerald Gradient Header -->
+    <!-- Activation Overlay -->
+    <div id="activationModal">
+        <div class="activation-card">
+            <h2>🔒 Software Activation</h2>
+            <p>Enter the First-Time Product Activation Key (8899) to open Inventory Count Desk.</p>
+            <input type="password" id="licenseKeyInput" placeholder="Enter Password" maxlength="8">
+            <button id="activateAppBtn">Activate Application</button>
+        </div>
+    </div>
+
+    <!-- Header -->
     <header>
-        <!-- Static App Branding -->
         <div class="brand-container">
             <div class="app-brand-title">
                 <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">📦</span>
@@ -134,7 +117,6 @@
             </div>
         </div>
 
-        <!-- Client Company Branding Setup (Center Area) -->
         <div class="client-section" title="Upload Client Logo & Set Company Name">
             <input type="file" id="logoUploadInput" accept="image/*" style="display:none;">
             <div class="logo-box" id="logoBox" title="Click to upload client logo">
@@ -151,108 +133,53 @@
             <button id="saveFinalBtn" class="btn-success">✅ Final Save All</button>
             <button id="viewReportBtn" style="background:#0284c7; color:#fff; border:none;">👁️ Summary</button>
             <button id="downloadExcelBtn" class="btn-dark">📊 Export Excel</button>
-            <button id="downloadPdfBtn" style="background:#15803d; color:#fff; border:none;">📄 Final PDF</button>
-            <button id="clearStorageBtn" class="btn-mini" style="color:#ef4444; border-color:#fca5a5;" title="Clear database memory">🗑 Clear Memory</button>
+            <button id="downloadPdfBtn" style="background:#15803d; color:#fff; border:none;">📄 High-Res PDF</button>
+            <button id="clearStorageBtn" style="color:#ef4444; border-color:#fca5a5; font-size:11px;">🗑 Clear Memory</button>
         </div>
     </header>
 
-    <!-- Canvas Sub Toolbar -->
     <div class="sub-toolbar">
         <label for="imageInput">📷 Load Image</label>
         <input type="file" id="imageInput" accept="image/*" capture="environment" style="display:none;">
         
-        <div class="slider-group">
-            <span>Dot Size:</span>
-            <input type="range" id="markerRadiusSlider" min="6" max="30" value="12">
-            <span id="markerSizeVal">12px</span>
-        </div>
-
         <button id="undoBtn" disabled>↩ Undo</button>
         <button id="redoBtn" disabled>↪ Redo</button>
-        <button id="toggleFiltersBtn">☀️ Lighting</button>
-        <button id="deleteModeBtn" class="mode-btn">🗑 Delete: OFF</button>
-        <button id="highlightToggleBtn" class="mode-btn">🔍 Focus Active: OFF</button>
+        <button id="deleteModeBtn">🗑 Delete: OFF</button>
         <button id="resetZoom">🎯 Reset View</button>
         <button id="clearAllBtn" style="color:#ef4444; border-color:#fca5a5;">⚡ Clear Canvas</button>
 
-        <div style="margin-left:auto; font-weight:700; font-size:12px; color:#0284c7;">
-            Active Count: <span id="totalCount">0</span>
+        <div style="margin-left:auto; font-weight:800; font-size:14px; color:#0284c7;">
+            Total Active Count: <span id="totalCount">0</span>
         </div>
     </div>
 
-    <!-- Lighting Filters Floating Panel -->
-    <div id="filtersPanel" class="filters-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e0f2fe; padding-bottom:4px;">
-            <span style="font-size:11px; font-weight:700; color:#0369a1;">☀️ Adjust Lighting</span>
-            <span id="closeLightingBtn" style="cursor:pointer; font-weight:bold; font-size:12px; color:#ef4444; padding:0 4px;" title="Close Panel">✕</span>
-        </div>
-        <div class="slider-group">
-            <span>Brightness:</span>
-            <input type="range" id="brightnessSlider" min="50" max="200" value="100">
-            <span id="brightnessVal">100%</span>
-        </div>
-        <div class="slider-group">
-            <span>Contrast:</span>
-            <input type="range" id="contrastSlider" min="50" max="200" value="100">
-            <span id="contrastVal">100%</span>
-        </div>
-        <button id="resetFiltersBtn" style="padding:2px 6px; font-size:10px;">Reset Default</button>
-    </div>
-
-    <!-- Main Layout -->
     <div class="main-layout">
         <div id="canvas-container">
             <canvas id="pipeCanvas"></canvas>
         </div>
 
-        <!-- Scrollable Sidebar -->
         <div class="sidebar">
             <div class="sidebar-section">
-                <div class="section-header">📍 Active Location / Vehicle</div>
-                <input type="text" id="locValInput" placeholder="Enter Location or Vehicle No." value="Location 1">
+                <div style="font-size:12px; font-weight:800; color:#0284c7; margin-bottom:6px;">📍 Active Location / Vehicle</div>
+                <input type="text" id="locValInput" value="Location 1" style="width:100%; padding:8px; font-size:12px; border:1px solid #cbd5e1; border-radius:6px; outline:none;">
             </div>
 
             <div class="sidebar-section">
-                <div class="section-header">🏷️ Item Categories Setup</div>
-                <div class="size-input-group">
-                    <div class="size-input-row">
-                        <input type="text" id="newSizeName" placeholder="Category Name (e.g. 2-inch Pipe)">
-                        <input type="color" id="newSizeColor" value="#0284c7" style="width:30px; height:29px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer;">
-                        <button id="addSizeBtn" style="background:#0284c7; color:#fff; border:none;">Add</button>
-                    </div>
-                    <div class="color-palette" id="quickColors">
-                        <div class="color-chip selected" style="background:#0284c7;" data-color="#0284c7"></div>
-                        <div class="color-chip" style="background:#16a34a;" data-color="#16a34a"></div>
-                        <div class="color-chip" style="background:#dc2626;" data-color="#dc2626"></div>
-                        <div class="color-chip" style="background:#d97706;" data-color="#d97706"></div>
-                        <div class="color-chip" style="background:#9333ea;" data-color="#9333ea"></div>
-                        <div class="color-chip" style="background:#db2777;" data-color="#db2777"></div>
-                        <div class="color-chip" style="background:#334155;" data-color="#334155"></div>
-                    </div>
+                <div style="font-size:12px; font-weight:800; color:#0284c7; margin-bottom:8px;">🏷️ Item Categories Setup</div>
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <input type="text" id="newSizeName" placeholder="Category Name" style="flex:1; padding:6px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px;">
+                    <input type="color" id="newSizeColor" value="#0284c7" style="width:32px; height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer;">
+                    <button id="addSizeBtn" style="background:#0284c7; color:#fff; border:none;">Add</button>
                 </div>
-
-                <div style="margin-top:10px;">
-                    <div style="font-size:10px; font-weight:700; color:#64748b; margin-bottom:4px;">ACTIVE CATEGORIES LIST:</div>
-                    <div id="sizesList"></div>
-                </div>
+                <div id="sizesList"></div>
             </div>
 
             <div class="sidebar-section">
-                <div class="section-header">
+                <div style="font-size:12px; font-weight:800; color:#0284c7; margin-bottom:8px; display:flex; justify-content:space-between;">
                     <span>🗂️ Saved Audit Locations</span>
                     <span id="savedBatchesCount" style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:8px; font-size:10px;">0</span>
                 </div>
                 <div id="batchesList"></div>
-            </div>
-
-            <div style="margin-top:auto; padding-top:8px;">
-                <div style="display:flex; justify-content:space-between; font-size:10px; color:#64748b;">
-                    <span>Local Memory Used:</span>
-                    <strong id="storageUsagePct">0%</strong>
-                </div>
-                <div class="storage-bar-box">
-                    <div class="storage-bar-fill" id="storageBarFill"></div>
-                </div>
             </div>
         </div>
     </div>
@@ -262,13 +189,34 @@
         <div class="modal-content">
             <div class="modal-header">
                 <span>📋 Audit Summary Report</span>
-                <button id="closeModalBtn" style="padding:2px 8px; border:none; background:#f1f5f9; font-size:14px;">✕</button>
+                <button id="closeModalBtn" style="padding:2px 8px; border:none; background:#f1f5f9; font-size:14px; cursor:pointer;">✕</button>
             </div>
             <div class="modal-body" id="modalReportBody"></div>
         </div>
     </div>
 
     <script>
+        // Activation Key Logic
+        function checkActivation() {
+            const isActivated = localStorage.getItem('inventory_app_activated');
+            if (isActivated === 'true') {
+                document.getElementById('activationModal').style.display = 'none';
+            }
+        }
+
+        document.getElementById('activateAppBtn').onclick = () => {
+            const pwd = document.getElementById('licenseKeyInput').value;
+            if (pwd === '8899') {
+                localStorage.setItem('inventory_app_activated', 'true');
+                document.getElementById('activationModal').style.display = 'none';
+                alert('Software Activated Successfully!');
+            } else {
+                alert('Invalid License Key! Please contact software seller.');
+            }
+        };
+
+        checkActivation();
+
         const canvas = document.getElementById('pipeCanvas');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('canvas-container');
@@ -279,26 +227,18 @@
         let historyStack = [], redoStack = [];
         let categories = [{ id: 1, name: 'Default Item Category', color: '#0284c7' }];
         let activeCategoryId = 1;
-
         let savedBatches = []; 
         let currentLoadedBatchId = null;
 
         let scale = 1, panX = 0, panY = 0;
         let isDragging = false, startX, startY, dragDistance = 0;
-
         let isDeleteMode = false;
-        let focusActiveOnly = false;
-        let userMarkerRadius = 12;
-
-        let imgBrightness = 100, imgContrast = 100;
 
         function init() {
             setupLogoUpload();
-            setupQuickColors();
             loadLocalStorageData();
             renderCategories();
             renderBatches();
-            checkMemoryUsage();
         }
 
         function setupLogoUpload() {
@@ -336,108 +276,28 @@
         function saveToLocalStorage() {
             try {
                 localStorage.setItem('inventory_saved_batches', JSON.stringify(savedBatches));
-                checkMemoryUsage();
             } catch(e) {
-                alert("Storage alert! Perform a Final Save & Export your Excel report.");
+                alert("Storage limit alert! Export report to clear space.");
             }
         }
 
         function loadLocalStorageData() {
             const rawData = localStorage.getItem('inventory_saved_batches');
             if (rawData) {
-                try { savedBatches = JSON.parse(rawData); } catch(e) { console.error("Error loading stored data", e); }
+                try { savedBatches = JSON.parse(rawData); } catch(e) {}
             }
-        }
-
-        function checkMemoryUsage() {
-            let totalBytes = 0;
-            for (let key in localStorage) {
-                if (localStorage.hasOwnProperty(key)) {
-                    totalBytes += (localStorage[key].length + key.length) * 2;
-                }
-            }
-            const maxBytes = 5 * 1024 * 1024;
-            const usedPct = Math.min(100, Math.round((totalBytes / maxBytes) * 100));
-
-            document.getElementById('storageUsagePct').innerText = `${usedPct}%`;
-            const barFill = document.getElementById('storageBarFill');
-            barFill.style.width = `${usedPct}%`;
-            barFill.style.background = usedPct > 80 ? '#ef4444' : '#16a34a';
-        }
-
-        function resetCanvasState() {
-            img = new Image();
-            points = [];
-            historyStack = [];
-            redoStack = [];
-            currentLoadedBatchId = null;
-            focusActiveOnly = false;
-            document.getElementById('highlightToggleBtn').innerText = "🔍 Focus Active: OFF";
-            document.getElementById('highlightToggleBtn').classList.remove('active-filter');
-            document.getElementById('undoBtn').disabled = true;
-            document.getElementById('redoBtn').disabled = true;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            totalCountDisplay.innerText = "0";
-        }
-
-        document.getElementById('clearStorageBtn').onclick = () => {
-            if (confirm("Clear local database memory and reset categories?")) {
-                localStorage.removeItem('inventory_saved_batches');
-                savedBatches = [];
-                resetCanvasState();
-                categories = [{ id: Date.now(), name: 'Default Item Category', color: '#0284c7' }];
-                activeCategoryId = categories[0].id;
-                document.getElementById('locValInput').value = 'Location 1';
-                renderCategories();
-                renderBatches();
-                checkMemoryUsage();
-                alert("Database memory cleared and categories reset successfully!");
-            }
-        };
-
-        function setupQuickColors() {
-            const chips = document.querySelectorAll('#quickColors .color-chip');
-            chips.forEach(chip => {
-                chip.onclick = () => {
-                    chips.forEach(c => c.classList.remove('selected'));
-                    chip.classList.add('selected');
-                    document.getElementById('newSizeColor').value = chip.dataset.color;
-                };
-            });
         }
 
         document.getElementById('addSizeBtn').onclick = () => {
             const name = document.getElementById('newSizeName').value.trim();
             const color = document.getElementById('newSizeColor').value;
-            if (!name) return alert("Please specify a Category Name!");
+            if (!name) return alert("Please enter Category Name!");
             const newCat = { id: Date.now(), name, color };
             categories.push(newCat);
             activeCategoryId = newCat.id;
             document.getElementById('newSizeName').value = '';
             renderCategories();
         };
-
-        function renameCategory(catId) {
-            const cat = categories.find(c => c.id === catId);
-            if (!cat) return;
-            const newName = prompt("Edit Category Name:", cat.name);
-            if (newName && newName.trim() !== "") {
-                cat.name = newName.trim();
-                renderCategories();
-                renderBatches();
-            }
-        }
-
-        function deleteCategory(catId) {
-            if (categories.length <= 1) return alert("At least one category must remain!");
-            if (confirm("Delete this category? Associated markers will be removed.")) {
-                categories = categories.filter(c => c.id !== catId);
-                points = points.filter(p => p.catId !== catId);
-                activeCategoryId = categories[0].id;
-                renderCategories();
-                renderBatches();
-            }
-        }
 
         function renderCategories() {
             const sizesList = document.getElementById('sizesList');
@@ -447,32 +307,21 @@
                 const count = points.filter(p => p.catId === cat.id).length;
                 const card = document.createElement('div');
                 card.className = `size-card ${cat.id === activeCategoryId ? 'active' : ''}`;
+                card.onclick = () => { activeCategoryId = cat.id; renderCategories(); };
                 
                 card.innerHTML = `
-                    <div style="display:flex; align-items:center; flex:1;" onclick="setActiveCat(${cat.id})">
+                    <div style="display:flex; align-items:center;">
                         <span class="size-color-dot" style="background:${cat.color}"></span>
-                        <strong style="font-size:11px; color:#334155;">${cat.name}</strong>
-                        <span onclick="event.stopPropagation(); renameCategory(${cat.id})" style="margin-left:6px; cursor:pointer; font-size:11px; opacity:0.6;" title="Rename Category">✏️</span>
+                        <strong style="font-size:12px; color:#334155;">${cat.name}</strong>
                     </div>
-                    <div style="display:flex; align-items:center; gap:4px;">
-                        <span style="font-weight:700; background:#fff; padding:2px 6px; border-radius:10px; font-size:10px; color:${cat.color}; border:1px solid ${cat.color}44;">
-                            ${count}
-                        </span>
-                        <span onclick="event.stopPropagation(); deleteCategory(${cat.id})" style="cursor:pointer; font-size:10px; opacity:0.5; margin-left:2px;" title="Remove Category">❌</span>
-                    </div>
+                    <span style="font-weight:700; background:#fff; padding:2px 8px; border-radius:10px; font-size:11px; color:${cat.color}; border:1px solid ${cat.color}44;">
+                        ${count} pcs
+                    </span>
                 `;
                 sizesList.appendChild(card);
             });
             totalCountDisplay.innerText = points.length;
             draw();
-        }
-
-        function setActiveCat(id) {
-            activeCategoryId = id;
-            focusActiveOnly = true; 
-            document.getElementById('highlightToggleBtn').innerText = "🔍 Focus Active: ON";
-            document.getElementById('highlightToggleBtn').classList.add('active-filter');
-            renderCategories();
         }
 
         document.getElementById('imageInput').addEventListener('change', (e) => {
@@ -497,27 +346,19 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (img.src) {
-                ctx.save();
-                ctx.filter = `brightness(${imgBrightness}%) contrast(${imgContrast}%)`;
                 ctx.drawImage(img, 0, 0);
-                ctx.restore();
             }
 
-            const dynamicRadius = userMarkerRadius / scale;
+            const dynamicRadius = 14 / scale;
             let catCounters = {};
 
             points.forEach((pt) => {
                 if (!catCounters[pt.catId]) catCounters[pt.catId] = 0;
                 catCounters[pt.catId]++;
                 const categoryIndex = catCounters[pt.catId];
-
                 const cat = categories.find(c => c.id === pt.catId) || categories[0];
-                const isSelectedCat = (pt.catId === activeCategoryId);
-
-                let opacity = (focusActiveOnly && !isSelectedCat) ? 0.35 : 1.0;
 
                 ctx.save();
-                ctx.globalAlpha = opacity;
                 ctx.beginPath();
                 ctx.arc(pt.x, pt.y, dynamicRadius, 0, Math.PI * 2);
                 ctx.fillStyle = cat.color;
@@ -527,7 +368,7 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = `bold ${Math.max(8, dynamicRadius * 0.85)}px Arial`;
+                ctx.font = `bold ${Math.max(10, dynamicRadius * 0.85)}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(categoryIndex, pt.x, pt.y);
@@ -538,7 +379,6 @@
             canvas.style.transformOrigin = '0 0';
         }
 
-        // Canvas Zoom / Pan Controls
         container.addEventListener('wheel', (e) => {
             if (!img.src) return;
             e.preventDefault();
@@ -581,64 +421,26 @@
             const clickX = (e.clientX - rect.left) / scale;
             const clickY = (e.clientY - rect.top) / scale;
 
-            const hitRadius = (userMarkerRadius + 4) / scale;
+            const hitRadius = 18 / scale;
             const existingIndex = points.findIndex(pt => Math.hypot(pt.x - clickX, pt.y - clickY) < hitRadius);
 
             if (isDeleteMode || e.shiftKey) {
                 if (existingIndex !== -1) {
-                    saveHistoryState();
                     points.splice(existingIndex, 1);
                 }
             } else {
                 if (existingIndex === -1) {
-                    saveHistoryState();
                     points.push({ x: clickX, y: clickY, catId: activeCategoryId });
                 }
             }
             renderCategories();
         }
 
-        function saveHistoryState() {
-            historyStack.push(JSON.stringify(points));
-            redoStack = [];
-            document.getElementById('undoBtn').disabled = false;
-            document.getElementById('redoBtn').disabled = true;
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                document.getElementById('undoBtn').click();
-            }
-        });
-
-        document.getElementById('undoBtn').onclick = () => {
-            if (historyStack.length === 0) return;
-            redoStack.push(JSON.stringify(points));
-            points = JSON.parse(historyStack.pop());
-            renderCategories();
-            document.getElementById('undoBtn').disabled = historyStack.length === 0;
-            document.getElementById('redoBtn').disabled = false;
-        };
-
-        document.getElementById('redoBtn').onclick = () => {
-            if (redoStack.length === 0) return;
-            historyStack.push(JSON.stringify(points));
-            points = JSON.parse(redoStack.pop());
-            renderCategories();
-            document.getElementById('redoBtn').disabled = redoStack.length === 0;
-            document.getElementById('undoBtn').disabled = false;
-        };
-
-        document.getElementById('clearAllBtn').onclick = () => {
-            if (points.length === 0 && !img.src) return alert("Canvas is already clear!");
-            if (confirm("Are you sure you want to clear current markings and image from canvas?")) {
-                saveHistoryState();
-                points = [];
-                img = new Image();
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                renderCategories();
-            }
+        document.getElementById('deleteModeBtn').onclick = () => {
+            isDeleteMode = !isDeleteMode;
+            document.getElementById('deleteModeBtn').innerText = isDeleteMode ? "🗑 Delete: ON" : "🗑 Delete: OFF";
+            document.getElementById('deleteModeBtn').style.background = isDeleteMode ? "#ef4444" : "#ffffff";
+            document.getElementById('deleteModeBtn').style.color = isDeleteMode ? "#ffffff" : "#334155";
         };
 
         document.getElementById('resetZoom').onclick = () => {
@@ -649,177 +451,95 @@
             draw();
         };
 
-        // Lighting Panel Controls
-        document.getElementById('toggleFiltersBtn').onclick = () => document.getElementById('filtersPanel').classList.toggle('active');
-        document.getElementById('closeLightingBtn').onclick = () => document.getElementById('filtersPanel').classList.remove('active');
-        document.getElementById('brightnessSlider').oninput = (e) => { imgBrightness = e.target.value; document.getElementById('brightnessVal').innerText = `${imgBrightness}%`; draw(); };
-        document.getElementById('contrastSlider').oninput = (e) => { imgContrast = e.target.value; document.getElementById('contrastVal').innerText = `${imgContrast}%`; draw(); };
-        document.getElementById('resetFiltersBtn').onclick = () => { imgBrightness = 100; imgContrast = 100; document.getElementById('brightnessSlider').value = 100; document.getElementById('contrastSlider').value = 100; document.getElementById('brightnessVal').innerText = '100%'; document.getElementById('contrastVal').innerText = '100%'; draw(); };
-
-        document.getElementById('deleteModeBtn').onclick = () => {
-            isDeleteMode = !isDeleteMode;
-            document.getElementById('deleteModeBtn').innerText = isDeleteMode ? "🗑 Delete: ON" : "🗑 Delete: OFF";
-            document.getElementById('deleteModeBtn').classList.toggle('active-delete', isDeleteMode);
+        document.getElementById('clearAllBtn').onclick = () => {
+            if (confirm("Clear canvas markings?")) {
+                points = [];
+                draw();
+                renderCategories();
+            }
         };
 
-        document.getElementById('highlightToggleBtn').onclick = () => {
-            focusActiveOnly = !focusActiveOnly;
-            document.getElementById('highlightToggleBtn').innerText = focusActiveOnly ? "🔍 Focus Active: ON" : "🔍 Focus Active: OFF";
-            document.getElementById('highlightToggleBtn').classList.toggle('active-filter', focusActiveOnly);
-            draw();
-        };
-
-        document.getElementById('markerRadiusSlider').oninput = (e) => {
-            userMarkerRadius = parseInt(e.target.value);
-            document.getElementById('markerSizeVal').innerText = `${userMarkerRadius}px`;
-            draw();
-        };
-
-        // Multi-Category Partial Save Executer (Safely Merges Categories)
+        // Partial & Final Save Logic
         document.getElementById('savePartialBtn').onclick = () => {
             const locName = document.getElementById('locValInput').value.trim() || 'General Location';
-            if (points.length === 0) return alert("Please add canvas markers before saving!");
+            if (points.length === 0) return alert("Please mark points on image first!");
 
-            if (!currentLoadedBatchId) {
-                const existingLocation = savedBatches.find(b => b.location.toLowerCase() === locName.toLowerCase());
-                if (existingLocation) {
-                    return alert(`Duplicate Location Error: Location/Vehicle "${locName}" already exists! Please use a different name or Resume the saved location.`);
-                }
-            }
-
-            const batchSummary = categories.map(c => {
-                const count = points.filter(p => p.catId === c.id).length;
-                return { catId: c.id, catName: c.name, count };
-            });
-
-            const imageSnapshot = canvas.toDataURL('image/jpeg', 0.85);
+            const batchSummary = categories.map(c => ({ catId: c.id, catName: c.name, count: points.filter(p => p.catId === c.id).length }));
+            const imageSnapshot = canvas.toDataURL('image/jpeg', 0.95);
 
             if (currentLoadedBatchId) {
                 const bIdx = savedBatches.findIndex(b => b.id === currentLoadedBatchId);
                 if (bIdx !== -1) {
                     savedBatches[bIdx].location = locName;
-                    savedBatches[bIdx].timestamp = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     savedBatches[bIdx].totalCount = points.length;
                     savedBatches[bIdx].breakdown = batchSummary;
                     savedBatches[bIdx].rawPoints = JSON.parse(JSON.stringify(points));
                     savedBatches[bIdx].categories = JSON.parse(JSON.stringify(categories));
-                    savedBatches[bIdx].status = 'PARTIAL';
                     savedBatches[bIdx].imageData = imageSnapshot;
                 }
-                alert(`Location "${locName}" updated with all categories intact (PARTIAL SAVE).`);
             } else {
                 savedBatches.push({
                     id: Date.now(),
                     location: locName,
-                    timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: new Date().toLocaleString(),
                     totalCount: points.length,
                     breakdown: batchSummary,
                     rawPoints: JSON.parse(JSON.stringify(points)),
                     categories: JSON.parse(JSON.stringify(categories)),
                     rawImageSrc: img.src,
-                    status: 'PARTIAL',
                     imageData: imageSnapshot
                 });
-                alert(`Location "${locName}" saved successfully (PARTIAL SAVE).`);
             }
 
-            saveToLocalStorage(); 
-            resetCanvasState();
+            saveToLocalStorage();
+            points = [];
+            currentLoadedBatchId = null;
             document.getElementById('locValInput').value = `Location ${savedBatches.length + 1}`;
             renderCategories();
             renderBatches();
+            alert(`Location "${locName}" saved successfully!`);
         };
 
-        // GLOBAL FINAL SAVE ALL
-        document.getElementById('saveFinalBtn').onclick = () => {
-            if (savedBatches.length === 0 && points.length === 0) {
-                return alert("No counted locations available to Final Save!");
-            }
+        function renderBatches() {
+            const list = document.getElementById('batchesList');
+            list.innerHTML = '';
+            document.getElementById('savedBatchesCount').innerText = savedBatches.length;
 
-            if (points.length > 0) {
-                const locName = document.getElementById('locValInput').value.trim() || 'General Location';
-                const batchSummary = categories.map(c => {
-                    const count = points.filter(p => p.catId === c.id).length;
-                    return { catId: c.id, catName: c.name, count };
-                });
-                const imageSnapshot = canvas.toDataURL('image/jpeg', 0.85);
-
-                if (currentLoadedBatchId) {
-                    const bIdx = savedBatches.findIndex(b => b.id === currentLoadedBatchId);
-                    if (bIdx !== -1) {
-                        savedBatches[bIdx].location = locName;
-                        savedBatches[bIdx].totalCount = points.length;
-                        savedBatches[bIdx].breakdown = batchSummary;
-                        savedBatches[bIdx].rawPoints = JSON.parse(JSON.stringify(points));
-                        savedBatches[bIdx].categories = JSON.parse(JSON.stringify(categories));
-                        savedBatches[bIdx].status = 'FINAL';
-                        savedBatches[bIdx].imageData = imageSnapshot;
-                    }
-                } else {
-                    savedBatches.push({
-                        id: Date.now(),
-                        location: locName,
-                        timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        totalCount: points.length,
-                        breakdown: batchSummary,
-                        rawPoints: JSON.parse(JSON.stringify(points)),
-                        categories: JSON.parse(JSON.stringify(categories)),
-                        rawImageSrc: img.src,
-                        status: 'FINAL',
-                        imageData: imageSnapshot
-                    });
-                }
-            }
-
-            savedBatches.forEach(b => {
-                b.status = 'FINAL';
-                if (!b.imageData && b.rawImageSrc) {
-                    b.imageData = b.rawImageSrc;
-                }
+            savedBatches.forEach((b) => {
+                const card = document.createElement('div');
+                card.className = 'batch-card';
+                card.innerHTML = `
+                    <div class="batch-header">
+                        <div>
+                            <strong>${b.location}</strong>
+                            <div style="font-size:10px; color:#64748b;">${b.timestamp}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span style="font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:10px; font-size:11px;">${b.totalCount} pcs</span>
+                            <button onclick="loadBatchForEdit(${b.id})" style="padding:2px 6px; font-size:10px; border-radius:4px; border:1px solid #0284c7; background:#0284c7; color:#fff;">Resume</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
             });
+        }
 
-            saveToLocalStorage();
-            resetCanvasState();
-            renderCategories();
-            renderBatches();
-            alert("All locations have been locked & FINAL SAVED successfully! Ready for Report Export.");
-        };
-
-        // Resume / Load Batch Routine (Merges All Categories Properly)
-        function loadBatchForEdit(batchId, focusCatId = null) {
+        function loadBatchForEdit(batchId) {
             const batch = savedBatches.find(b => b.id === batchId);
             if (!batch) return;
 
             document.getElementById('locValInput').value = batch.location;
             points = JSON.parse(JSON.stringify(batch.rawPoints || []));
-
-            // Merge Saved Categories with Active Categories Array to Prevent Overwrites
-            if (batch.categories && batch.categories.length > 0) {
+            if (batch.categories) {
                 batch.categories.forEach(bCat => {
-                    if (!categories.some(c => c.id === bCat.id)) {
-                        categories.push(bCat);
-                    }
+                    if (!categories.some(c => c.id === bCat.id)) categories.push(bCat);
                 });
             }
-
             currentLoadedBatchId = batch.id;
-
-            if (focusCatId) {
-                activeCategoryId = focusCatId;
-                focusActiveOnly = true;
-                document.getElementById('highlightToggleBtn').innerText = "🔍 Focus Active: ON";
-                document.getElementById('highlightToggleBtn').classList.add('active-filter');
-            } else {
-                focusActiveOnly = false;
-                document.getElementById('highlightToggleBtn').innerText = "🔍 Focus Active: OFF";
-                document.getElementById('highlightToggleBtn').classList.remove('active-filter');
-            }
 
             if (batch.rawImageSrc) {
                 img = new Image();
                 img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
                     scale = container.clientWidth / img.width;
                     panX = (container.clientWidth - img.width * scale) / 2;
                     panY = (container.clientHeight - img.height * scale) / 2;
@@ -831,251 +551,93 @@
             }
         }
 
-        function renderBatches() {
-            const list = document.getElementById('batchesList');
-            list.innerHTML = '';
-            document.getElementById('savedBatchesCount').innerText = savedBatches.length;
+        // 100% Native Fail-Safe Excel Export (Works without external CDN)
+        document.getElementById('downloadExcelBtn').onclick = () => {
+            if (savedBatches.length === 0 && points.length === 0) return alert("No saved count records to export!");
 
-            savedBatches.forEach((b) => {
-                const card = document.createElement('div');
-                card.className = 'batch-card';
+            const compName = localStorage.getItem('inventory_company_name') || 'Client Company';
+            let tableHTML = `<table border="1">
+                <tr><th colspan="4" style="background-color:#0284c7; color:#ffffff; font-size:16px;">${compName.toUpperCase()} - INVENTORY AUDIT REPORT</th></tr>
+                <tr><th>Location</th><th>Date/Time</th><th>Category Breakdown</th><th>Total Items (Pcs)</th></tr>`;
 
-                const catListHtml = b.breakdown.map(item => {
-                    return item.count > 0 ? `
-                        <div class="batch-cat-row" onclick="event.stopPropagation(); loadBatchForEdit(${b.id}, ${item.catId})" title="Click to Focus Category in Canvas">
-                            <span>• ${item.catName}</span>
-                            <strong>${item.count} pcs 🔍</strong>
-                        </div>` : '';
-                }).join('');
-
-                const statusTag = b.status === 'FINAL' ? 
-                    `<span style="background:#dcfce7; color:#15803d; font-size:9px; padding:1px 5px; border-radius:4px; font-weight:700;">FINAL</span>` :
-                    `<span style="background:#fef3c7; color:#b45309; font-size:9px; padding:1px 5px; border-radius:4px; font-weight:700;">PARTIAL</span>`;
-
-                card.innerHTML = `
-                    <div class="batch-header" onclick="toggleBatchAccordion(${b.id})">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span id="accIcon_${b.id}" style="font-weight:bold; font-size:12px; color:#0284c7;">+</span>
-                            <div>
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <strong style="color:#0f172a;">${b.location}</strong>
-                                    ${statusTag}
-                                </div>
-                                <div style="font-size:10px; color:#64748b;">${b.timestamp}</div>
-                            </div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <span style="font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:10px; font-size:10px;">
-                                ${b.totalCount} pcs
-                            </span>
-                            <button class="btn-mini" onclick="event.stopPropagation(); loadBatchForEdit(${b.id})" title="Resume work">▶️ Resume</button>
-                        </div>
-                    </div>
-                    <div class="batch-body" id="accBody_${b.id}">
-                        ${catListHtml || '<div style="font-size:10px; color:#94a3b8;">No items counted</div>'}
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function toggleBatchAccordion(batchId) {
-            const body = document.getElementById(`accBody_${batchId}`);
-            const icon = document.getElementById(`accIcon_${batchId}`);
-            if (body) {
-                body.classList.toggle('open');
-                icon.innerText = body.classList.contains('open') ? '−' : '+';
-            }
-        }
-
-        function getConsolidatedSummary() {
-            let catTotals = {};
             let grandTotal = 0;
-
             savedBatches.forEach(b => {
                 grandTotal += b.totalCount;
-                b.breakdown.forEach(item => {
-                    if (item.count > 0) {
-                        catTotals[item.catName] = (catTotals[item.catName] || 0) + item.count;
-                    }
-                });
+                let breakdownStr = b.breakdown.map(i => `${i.catName}: ${i.count} pcs`).join(', ');
+                tableHTML += `<tr><td>${b.location}</td><td>${b.timestamp}</td><td>${breakdownStr}</td><td>${b.totalCount}</td></tr>`;
             });
 
-            return { catTotals, grandTotal };
-        }
+            tableHTML += `<tr style="font-weight:bold; background-color:#e0f2fe;">
+                <td colspan="3">GRAND TOTAL</td><td>${grandTotal} Pcs</td>
+            </tr></table>`;
 
-        document.getElementById('viewReportBtn').onclick = () => {
-            const modal = document.getElementById('reportModal');
-            const body = document.getElementById('modalReportBody');
-            const { catTotals, grandTotal } = getConsolidatedSummary();
-
-            let html = `<h4 style="margin-bottom:8px; color:#0284c7;">📊 Category-wise Consolidated Grand Totals</h4>`;
-            
-            if (Object.keys(catTotals).length === 0) {
-                html += `<p style="font-size:11px; color:#64748b;">No saved records available.</p>`;
-            } else {
-                html += `<table class="summary-tbl"><thead><tr><th>Category Item Name</th><th>Total Quantity</th></tr></thead><tbody>`;
-                for (let [cat, cnt] of Object.entries(catTotals)) {
-                    html += `<tr><td><strong>${cat}</strong></td><td>${cnt} pcs</td></tr>`;
-                }
-                html += `<tr style="background:#e0f2fe; font-weight:800;"><td>GRAND TOTAL</td><td>${grandTotal} pcs</td></tr></tbody></table>`;
-
-                html += `<h4 style="margin:14px 0 8px 0; color:#0284c7;">📍 Saved Location Logs</h4>`;
-                savedBatches.forEach((b, i) => {
-                    html += `
-                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-bottom:6px;">
-                            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:11px; color:#0f172a;">
-                                <span>#${i+1} ${b.location} (${b.timestamp}) [${b.status}]</span>
-                                <span style="color:#0284c7;">${b.totalCount} pcs</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            body.innerHTML = html;
-            modal.classList.add('active');
+            const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `Inventory_Report_${new Date().toISOString().slice(0,10)}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         };
 
-        document.getElementById('closeModalBtn').onclick = () => document.getElementById('reportModal').classList.remove('active');
-
-        // Excel Export
-        document.getElementById('downloadExcelBtn').onclick = () => {
-            if (savedBatches.length === 0) return alert("No saved data available to export!");
-
-            const wb = XLSX.utils.book_new();
-            const { catTotals, grandTotal } = getConsolidatedSummary();
-            const compName = localStorage.getItem('inventory_company_name') || 'Client Company';
-
-            let summarySheetData = [
-                [compName.toUpperCase()],
-                ["INVENTORY COUNT DESK - AUDIT REPORT"],
-                ["Generated On", new Date().toLocaleString()],
-                [],
-                ["CATEGORY CONSOLIDATED SUMMARY"],
-                ["Category Item Name", "Total Quantity (Pcs)"]
-            ];
-
-            let startRow = 7;
-            let idx = 0;
-            for (let [cat, cnt] of Object.entries(catTotals)) {
-                summarySheetData.push([cat, cnt]);
-                idx++;
-            }
-            summarySheetData.push(["GRAND TOTAL", { f: `=SUM(B${startRow}:B${startRow + idx - 1})` }]);
-
-            summarySheetData.push([]);
-            summarySheetData.push(["LOCATION BREAKDOWN"]);
-            summarySheetData.push(["Location / Vehicle", "Status", "Last Updated", "Total Items (Pcs)"]);
-
-            savedBatches.forEach(b => {
-                summarySheetData.push([b.location, b.status, b.timestamp, b.totalCount]);
-            });
-
-            const wsSummary = XLSX.utils.aoa_to_sheet(summarySheetData);
-            wsSummary['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 22 }, { wch: 18 }];
-            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary Report");
-
-            let detailSheetData = [["Location Name", "Status", "Timestamp", "Category Item", "Quantity"]];
-            savedBatches.forEach(b => {
-                b.breakdown.forEach(item => {
-                    if (item.count > 0) {
-                        detailSheetData.push([b.location, b.status, b.timestamp, item.catName, item.count]);
-                    }
-                });
-            });
-
-            const wsDetail = XLSX.utils.aoa_to_sheet(detailSheetData);
-            wsDetail['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 22 }, { wch: 25 }, { wch: 15 }];
-            XLSX.utils.book_append_sheet(wb, wsDetail, "Detailed Log");
-
-            XLSX.writeFile(wb, `Inventory_Audit_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
-        };
-
-        // PDF Export Handler
+        // High Quality Full-Resolution PDF Generator
         document.getElementById('downloadPdfBtn').onclick = () => {
-            if (savedBatches.length === 0) return alert("No saved records available to export to PDF!");
+            if (savedBatches.length === 0 && points.length === 0) return alert("No saved data to print PDF!");
 
-            const { catTotals, grandTotal } = getConsolidatedSummary();
-            const compName = localStorage.getItem('inventory_company_name') || 'Client Company';
+            const compName = localStorage.getItem('inventory_company_name') || 'Client Company Name';
+            const clientLogoSrc = localStorage.getItem('inventory_custom_logo') || '';
 
-            let summaryRowsHtml = '';
-            for (let [cat, cnt] of Object.entries(catTotals)) {
-                summaryRowsHtml += `<tr><td style="padding:6px; border:1px solid #cbd5e1;"><strong>${cat}</strong></td><td style="padding:6px; border:1px solid #cbd5e1; text-align:right;">${cnt} pcs</td></tr>`;
-            }
-
-            let pdfContent = `
-                <div style="text-align:center; border-bottom:2px solid #0284c7; padding-bottom:10px; margin-bottom:20px;">
-                    <h2 style="margin:0; color:#0f172a;">${compName.toUpperCase()}</h2>
-                    <h4 style="margin:4px 0 0 0; color:#0284c7;">Inventory Count Desk - Audit Report</h4>
-                    <div style="font-size:11px; color:#94a3b8; margin-top:4px;">Generated On: ${new Date().toLocaleString()}</div>
-                </div>
-
-                <div style="background:#f8fafc; border:1px solid #0284c7; padding:14px; border-radius:8px; margin-bottom:20px;">
-                    <h3 style="margin-top:0; color:#0284c7; font-size:14px;">📊 Category Grand Summary</h3>
-                    <table style="width:100%; border-collapse:collapse; font-size:12px; background:#ffffff;">
-                        <thead>
-                            <tr style="background:#0284c7; color:#ffffff;">
-                                <th style="padding:6px; text-align:left;">Category Item Name</th>
-                                <th style="padding:6px; text-align:right;">Consolidated Quantity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${summaryRowsHtml}
-                            <tr style="background:#e0f2fe; font-weight:bold; font-size:13px;">
-                                <td style="padding:6px; border:1px solid #cbd5e1;">GRAND CONSOLIDATED TOTAL</td>
-                                <td style="padding:6px; border:1px solid #cbd5e1; text-align:right; color:#16a34a;">${grandTotal} pcs</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            let pdfHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${compName} - Inventory Audit Report</title>
+                <style>
+                    body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 25px; color: #0f172a; font-size: 14px; line-height: 1.5; }
+                    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px; }
+                    .header h1 { margin: 0; color: #0284c7; font-size: 22px; text-transform: uppercase; }
+                    .logo { max-height: 60px; max-width: 140px; border-radius: 6px; }
+                    .location-block { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 18px; margin-bottom: 25px; page-break-inside: avoid; }
+                    .location-title { font-size: 16px; font-weight: 800; color: #0284c7; margin-bottom: 8px; }
+                    .img-container { text-align: center; margin-top: 12px; }
+                    .img-container img { width: 100%; max-height: 500px; object-fit: contain; border-radius: 8px; border: 1px solid #cbd5e1; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
+                    th { background: #f1f5f9; font-weight: 700; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div>
+                        <h1>${compName}</h1>
+                        <p style="margin:4px 0 0 0; color:#64748b; font-weight:600;">INVENTORY COUNT AUDIT REPORT</p>
+                        <p style="margin:2px 0 0 0; font-size:12px; color:#94a3b8;">Generated: ${new Date().toLocaleString()}</p>
+                    </div>
+                    ${clientLogoSrc ? `<img src="${clientLogoSrc}" class="logo">` : ''}
                 </div>
             `;
 
             savedBatches.forEach((b, i) => {
-                pdfContent += `
-                    <div style="background:#ffffff; border:1px solid #cbd5e1; padding:14px; margin-bottom:20px; border-radius:8px; page-break-after: always;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:10px;">
-                            <h3 style="margin:0; color:#0284c7; font-size:14px;">Location #${i+1}: ${b.location} [${b.status}]</h3>
-                            <span style="font-size:11px; color:#64748b;">Updated: ${b.timestamp}</span>
-                        </div>
-                        <p style="margin:0 0 8px 0; font-weight:bold; font-size:12px;">Location Total: ${b.totalCount} pcs</p>
-                        
-                        <div style="margin-bottom:12px;">
-                            <strong style="font-size:12px;">Category Breakdown:</strong>
-                            <ul style="margin:4px 0 10px 18px; font-size:11px;">
-                                ${b.breakdown.map(item => item.count > 0 ? `<li><strong>${item.catName}:</strong>${item.count} pcs</li>` : '').join('')}
-                            </ul>
-                        </div>
-
-                        ${b.imageData ? `
-                        <div style="text-align:center;">
-                            <img src="${b.imageData}" style="max-width:100%; height:auto; max-height:420px; border:1px solid #cbd5e1; border-radius:6px;">
-                        </div>` : ''}
-                    </div>
-                `;
+                pdfHTML += `
+                <div class="location-block">
+                    <div class="location-title">Location #${i+1}: ${b.location} (${b.timestamp})</div>
+                    <p style="font-weight:700;">Total Item Count: <span style="color:#0284c7;">${b.totalCount} pcs</span></p>
+                    <table>
+                        <tr><th>Category</th><th>Counted Quantity</th></tr>
+                        ${b.breakdown.map(item => item.count > 0 ? `<tr><td>${item.catName}</td><td><strong>${item.count} pcs</strong></td></tr>` : '').join('')}
+                    </table>
+                    ${b.imageData ? `<div class="img-container"><img src="${b.imageData}"></div>` : ''}
+                </div>`;
             });
 
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) return alert("Please allow popups to export PDF.");
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Inventory Audit PDF Report</title>
-                    <style>
-                        body { font-family: 'Plus Jakarta Sans', sans-serif; padding:15px; color:#0f172a; }
-                        @media print { body { padding: 0; } }
-                    </style>
-                </head>
-                <body>
-                    ${pdfContent}
-                    <script>
-                        window.onload = function() { window.print(); }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
+            pdfHTML += `</body></html>`;
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(pdfHTML);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => { printWin.print(); }, 500);
         };
 
         init();
